@@ -34,7 +34,7 @@ public class HumanRoboticsControl implements Closeable {
     public boolean sayAndListen(String text) {
         try {
             long ms = text.replaceAll("\\s", "").length() * delayPerChar;
-            System.out.format("Waiting %dms%n", ms);
+            System.out.format("Waiting %dms while sentence is spoken and then listening to user", ms);
             robios.say(text).delay(ms).listen();
             return true;
         } catch (Exception e) {

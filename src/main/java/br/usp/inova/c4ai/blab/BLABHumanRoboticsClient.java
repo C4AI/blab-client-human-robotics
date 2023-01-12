@@ -6,6 +6,8 @@ import io.humanrobotics.api.exception.RobiosException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -33,19 +35,23 @@ public class BLABHumanRoboticsClient {
 
     BlockingQueue<String> botMessageQueue;
 
-    public BLABHumanRoboticsClient(Properties config) throws RobiosException {
+    public BLABHumanRoboticsClient(Properties config) {
         this.config = config;
 
         botMessageQueue = new LinkedBlockingQueue<>();
         userMessageQueue = new LinkedBlockingQueue<>();
 
-        this.robotControl = new HumanRoboticsControl(
-                config.getProperty("ROBIOS_ROBOT_ADDRESS"),
-                config.getProperty("ROBIOS_ROBOT_ID"),
-                config.getProperty("ROBIOS_API_KEY"),
-                Long.parseLong(config.getProperty("DELAY_PER_CHARACTER_MS")),
-                this::userMessageReceived
-        );
+        try {
+            this.robotControl = new HumanRoboticsControl(
+                    config.getProperty("ROBIOS_ROBOT_ADDRESS"),
+                    config.getProperty("ROBIOS_ROBOT_ID"),
+                    config.getProperty("ROBIOS_API_KEY"),
+                    Long.parseLong(config.getProperty("DELAY_PER_CHARACTER_MS")),
+                    this::userMessageReceived
+            );
+        } catch (RobiosException e) {
+            throw new RuntimeException(e);
+        }
         this.botNames = Arrays.stream(config.getProperty("BLAB_CHAT_BOTS").split(config.getProperty("BLAB_CHAT_BOTS_SEP", ","))).toList();
         this.greeting = config.getProperty("GREETING", "Hello");
         this.userMessageTimeout = Long.parseLong(config.getProperty("USER_MESSAGE_TIMEOUT"));
@@ -55,15 +61,15 @@ public class BLABHumanRoboticsClient {
 
     private static Properties loadConfig(String configFileName) {
         Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(configFileName)) {
-            properties.load(fis);
+        try (InputStreamReader input = new InputStreamReader(new FileInputStream(configFileName), StandardCharsets.UTF_8)) {
+            properties.load(input);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return properties;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Properties config = loadConfig("settings.ini");
         BLABHumanRoboticsClient client = new BLABHumanRoboticsClient(config);
         client.start();
@@ -71,28 +77,37 @@ public class BLABHumanRoboticsClient {
 
     private void userMessageReceived(String text) {
         if (!userMessageQueue.offer(text)) {
-            System.err.format("User said “%s”, but the message could not be added to the queue", text);
+            System.err.format("User said “%s”, but the message could not be added to the queue%n", text);
         }
     }
 
     private void botMessageReceived(String text) {
         if (!botMessageQueue.offer(text)) {
-            System.err.format("Bot said “%s”, but the message could not be added to the queue", text);
+            System.err.format("Bot said “%s”, but the message could not be added to the queue%n", text);
         }
     }
 
     private String waitForUserMessage() {
+        System.out.format("Waiting at most %dms for a message from the user...%n", userMessageTimeout);
+        String message;
         try {
-            return userMessageQueue.poll(userMessageTimeout, TimeUnit.MILLISECONDS);
+            message = userMessageQueue.poll(userMessageTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            return null;
+            message = null;
         }
+        if (message != null) {
+            System.out.format("User said: %s%n", message);
+        } else {
+            System.out.println("Could not listen to user");
+        }
+        return message;
     }
 
     private String waitForBotMessage() {
         StringBuilder sb = new StringBuilder();
         boolean isFirst = true;
+        System.out.format("Waiting at most %dms for a message from the bots...%n", botMessageTimeout);
         do {
             try {
                 String m = botMessageQueue.poll(isFirst ? botMessageTimeout : 100, TimeUnit.MILLISECONDS);
@@ -107,7 +122,12 @@ public class BLABHumanRoboticsClient {
             }
             isFirst = false;
         } while (!botMessageQueue.isEmpty());
-        return sb.toString();
+        String message = sb.toString();
+        if (!message.isBlank())
+            System.out.format("Bot said: %s%n", message.replaceAll("[\\r\\n]", " "));
+        else
+            System.out.println("Bot did not reply");
+        return message;
     }
 
     public void start() {
