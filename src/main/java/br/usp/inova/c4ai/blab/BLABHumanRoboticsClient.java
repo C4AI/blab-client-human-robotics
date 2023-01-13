@@ -4,10 +4,6 @@ import br.usp.inova.c4ai.blab.blab.BLABClient;
 import br.usp.inova.c4ai.blab.hr.HumanRoboticsControl;
 import io.humanrobotics.api.exception.RobiosException;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -20,23 +16,20 @@ public class BLABHumanRoboticsClient {
     private final HumanRoboticsControl robotControl;
     private final BLABClient blabControl;
 
-    List<String> botNames;
+    private final List<String> botNames;
 
-    Properties config;
+    private final String greeting;
 
-    String greeting;
+    private final long userMessageTimeout;
 
-    long userMessageTimeout;
+    private final long botMessageTimeout;
 
-    long botMessageTimeout;
-
-    BlockingQueue<String> userMessageQueue;
+    private final BlockingQueue<String> userMessageQueue;
 
 
-    BlockingQueue<String> botMessageQueue;
+    private final BlockingQueue<String> botMessageQueue;
 
     public BLABHumanRoboticsClient(Properties config) {
-        this.config = config;
 
         botMessageQueue = new LinkedBlockingQueue<>();
         userMessageQueue = new LinkedBlockingQueue<>();
@@ -57,22 +50,6 @@ public class BLABHumanRoboticsClient {
         this.userMessageTimeout = Long.parseLong(config.getProperty("USER_MESSAGE_TIMEOUT"));
         this.botMessageTimeout = Long.parseLong(config.getProperty("BOT_MESSAGE_TIMEOUT"));
         this.blabControl = new BLABClient(config.getProperty("BLAB_CHAT_SERVER_URL"), config.getProperty("BLAB_CHAT_WS_SERVER_URL"), this::botMessageReceived);
-    }
-
-    private static Properties loadConfig(String configFileName) {
-        Properties properties = new Properties();
-        try (InputStreamReader input = new InputStreamReader(new FileInputStream(configFileName), StandardCharsets.UTF_8)) {
-            properties.load(input);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return properties;
-    }
-
-    public static void main(String[] args) {
-        Properties config = loadConfig("settings.ini");
-        BLABHumanRoboticsClient client = new BLABHumanRoboticsClient(config);
-        client.start();
     }
 
     private void userMessageReceived(String text) {
