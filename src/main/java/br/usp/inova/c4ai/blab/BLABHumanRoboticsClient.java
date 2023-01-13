@@ -40,6 +40,7 @@ public class BLABHumanRoboticsClient {
                     config.getProperty("ROBIOS_ROBOT_ID"),
                     config.getProperty("ROBIOS_API_KEY"),
                     Long.parseLong(config.getProperty("DELAY_PER_CHARACTER_MS")),
+                    Long.parseLong(config.getProperty("MIN_DELAY_MS")),
                     this::userMessageReceived
             );
         } catch (RobiosException e) {

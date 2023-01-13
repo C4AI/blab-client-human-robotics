@@ -8,6 +8,9 @@ import io.humanrobotics.api.exception.RobiosException;
 import java.io.Closeable;
 import java.util.function.Consumer;
 
+import static java.lang.Math.max;
+
+
 public class HumanRoboticsControl implements Closeable {
 
     private final String robotAddress;
@@ -20,20 +23,23 @@ public class HumanRoboticsControl implements Closeable {
 
     private final long delayPerChar;
 
+    private final long minDelay;
 
-    public HumanRoboticsControl(String robotAddress, String robotId, String apiKey, long delayPerChar, Consumer<String> callback) throws RobiosException {
+
+    public HumanRoboticsControl(String robotAddress, String robotId, String apiKey, long delayPerChar, long minDelay, Consumer<String> callback) throws RobiosException {
         this.robotAddress = robotAddress;
         this.robotId = robotId;
         this.apiKey = apiKey;
         this.robios = createRobios();
         this.callback = callback;
         this.delayPerChar = delayPerChar;
+        this.minDelay = minDelay;
         robios.addVoiceRecognitionCallback(this::onUserTextReceived);
     }
 
     public boolean sayAndListen(String text) {
         try {
-            long ms = text.replaceAll("\\s", "").length() * delayPerChar;
+            long ms = max(minDelay, text.replaceAll("\\s", "").length() * delayPerChar);
             System.out.format("Waiting %dms while sentence is spoken and then listening to user%n", ms);
             robios.say(text).delay(ms).listen();
             return true;
