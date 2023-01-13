@@ -18,7 +18,7 @@ public class BLABHumanRoboticsClientMain {
     }
 
     public static void main(String[] args) {
-        Properties config = loadConfig("settings.ini");
+        Properties config = loadConfig(args.length >= 1 ? args[0] : "settings.ini");
         BLABHumanRoboticsClient client = new BLABHumanRoboticsClient(config);
         client.start();
     }
