@@ -35,7 +35,7 @@ public class BLABClient {
         ConversationCreationRequestData body = new ConversationCreationRequestData(nickname, bots, conversationName);
         Request request = new Request.Builder()
                 .url(baseURL + "/conversations/")
-                .post(RequestBody.create(MediaType.parse("application/json"), gson.toJson(body)))
+                .post(RequestBody.create(gson.toJson(body), MediaType.parse("application/json")))
                 .build();
         http.newCall(request).enqueue(new Callback() {
             @Override
