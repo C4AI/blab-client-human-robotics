@@ -82,7 +82,7 @@ with [BLAB Controller](https://github.com/C4AI/blab-controller).
     # how many milliseconds per non-space character should we wait after asking the robot to say something
     DELAY_PER_CHARACTER=65
     
-    # minimum delay, in case the value computed using the previous parameter is too small for short sentences
+    # minimum delay (in milliseconds), in case the value computed using the previous parameter is too small for short sentences
     MIN_DELAY=500
     
     ```

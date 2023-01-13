@@ -1,8 +1,5 @@
 package br.usp.inova.c4ai.blab.blab;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -16,9 +13,8 @@ public class BLABClient {
 
     private final String baseURL;
     private final OkHttpClient http;
-    private final Gson gson = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .create();
+
+    private final JSONFormatWrapper json = new JSONFormatWrapper();
     private final String wsBaseURL;
     private final Consumer<String> callback;
     private WebSocket ws;
@@ -35,7 +31,7 @@ public class BLABClient {
         ConversationCreationRequestData body = new ConversationCreationRequestData(nickname, bots, conversationName);
         Request request = new Request.Builder()
                 .url(baseURL + "/conversations/")
-                .post(RequestBody.create(gson.toJson(body), MediaType.parse("application/json")))
+                .post(RequestBody.create(json.toJson(body), MediaType.parse("application/json")))
                 .build();
         http.newCall(request).enqueue(new Callback() {
             @Override
@@ -52,7 +48,7 @@ public class BLABClient {
                     callback.accept(null);
                     return;
                 }
-                ConversationCreationResponseData d = gson.fromJson(responseBody.string(), ConversationCreationResponseData.class);
+                ConversationCreationResponseData d = json.fromJson(responseBody.string(), ConversationCreationResponseData.class);
                 List<Cookie> cookies = Cookie.parseAll(response.request().url(), response.headers());
                 Optional<Cookie> sessionCookie = cookies.stream().filter(c -> "sessionid".equals(c.name())).findFirst();
                 if (sessionCookie.isEmpty()) {
@@ -79,7 +75,7 @@ public class BLABClient {
             @Override
             public void onMessage(WebSocket webSocket, String text) {
                 super.onMessage(webSocket, text);
-                WebSocketMessageData d = gson.fromJson(text, WebSocketMessageData.class);
+                WebSocketMessageData d = json.fromJson(text, WebSocketMessageData.class);
                 System.out.println(d);
                 if (d.message != null && "T".equals(d.message.type) && !d.message.sentByHuman) {
                     callback.accept(d.message.text);
@@ -89,7 +85,7 @@ public class BLABClient {
     }
 
     public void sendMessage(String text) {
-        ws.send(gson.toJson(Map.of("type", "T", "local_id", UUID.randomUUID().toString().replaceAll("-", ""), "text", text)));
+        ws.send(json.toJson(Map.of("type", "T", "local_id", UUID.randomUUID().toString().replaceAll("-", ""), "text", text)));
     }
 
 
