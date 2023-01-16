@@ -4,6 +4,8 @@ import io.humanrobotics.api.Robios;
 import io.humanrobotics.api.RobiosApi;
 import io.humanrobotics.api.RobiosConfig;
 import io.humanrobotics.api.exception.RobiosException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Closeable;
 import java.util.function.Consumer;
@@ -13,6 +15,11 @@ import java.util.regex.Pattern;
  * Handles bidirectional communication with Robios robots and avatars.
  */
 public class HumanRoboticsControl implements Closeable {
+
+    /**
+     * Class logger.
+     */
+    private static final Logger logger = LogManager.getLogger();
 
     /**
      * Pattern that matches whitespace characters
@@ -92,11 +99,11 @@ public class HumanRoboticsControl implements Closeable {
     public boolean sayAndListen(String text) {
         try {
             long ms = Math.max(minDelay, BLANK.matcher(text).replaceAll("").length() * delayPerChar);
-            System.out.format("Waiting %dms while sentence is spoken and then listening to user%n", ms);
+            logger.info("Waiting {}ms while sentence is spoken and then listening to user", ms);
             robios.say(text).delay(ms).listen();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error when listening or speaking", e);
             return false;
         }
     }

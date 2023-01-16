@@ -8,6 +8,8 @@ import br.usp.inova.c4ai.blab.internal.network.Response;
 import br.usp.inova.c4ai.blab.internal.network.ResponseCallback;
 import br.usp.inova.c4ai.blab.internal.network.WebSocket;
 import br.usp.inova.c4ai.blab.internal.network.WebSocketListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +31,11 @@ public class BLABClient {
      * Pattern that matches a dash ("-"). Used to remove dashes from UUID4 strings.
      */
     private static final Pattern DASH = Pattern.compile("-");
+
+    /**
+     * Class logger.
+     */
+    private static final Logger logger = LogManager.getLogger();
 
     /**
      * URL of the HTTP(S) chat API provided by BLAB Controller server.
@@ -115,7 +122,7 @@ public class BLABClient {
         String localId = DASH.matcher(UUID.randomUUID().toString()).replaceAll("");
         String contents = json.toJson(Map.of("type", "T", "local_id", localId, "text", text));
         if (!ws.send(contents))
-            System.err.format("Failed to send message: “%s”%n", text);
+            logger.error("Failed to send message: “{}”", text);
     }
 
     /**
@@ -242,14 +249,14 @@ public class BLABClient {
 
         @Override
         public void onFailure(IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to create a conversation", e);
             callbackFunction.accept(null);
         }
 
         @Override
         public void onResponse(Response response) {
             if (!response.success()) {
-                System.err.println("Request failed: " + Arrays.toString(response.body()));
+                logger.error("Failed to create a conversation. Code {}. {}", response.code(), Arrays.toString(response.body()));
                 callbackFunction.accept(null);
                 return;
             }
@@ -257,7 +264,7 @@ public class BLABClient {
             List<Cookie> cookies = response.cookies();
             Optional<Cookie> sessionCookie = cookies.stream().filter(cookie -> "sessionid".equals(cookie.name())).findFirst();
             if (sessionCookie.isEmpty()) {
-                System.err.println("Missing cookie");
+                logger.error("Missing cookie");
                 callbackFunction.accept(null);
                 return;
             }
@@ -278,7 +285,7 @@ public class BLABClient {
         protected void onMessage(String text) {
             super.onMessage(text);
             WebSocketMessageData messageData = json.fromJson(text, WebSocketMessageData.class);
-            System.out.println(messageData);
+            logger.debug("Message received from BLAB Controller: {}", messageData);
             if (messageData.message() != null && "T".equals(messageData.message().type) && !messageData.message().sentByHuman())
                 callback.accept(messageData.message().text());
         }

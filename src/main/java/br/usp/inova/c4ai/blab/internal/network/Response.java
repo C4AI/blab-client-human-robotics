@@ -1,6 +1,8 @@
 package br.usp.inova.c4ai.blab.internal.network;
 
 import okhttp3.ResponseBody;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.List;
@@ -10,6 +12,11 @@ import java.util.Map;
  * Handles request responses.
  */
 public interface Response {
+
+    /**
+     * Class logger.
+     */
+    Logger logger = LogManager.getLogger();
 
     /**
      * Wraps an OkHttp {@link okhttp3.Response} instance.
@@ -47,7 +54,7 @@ public interface Response {
                 try {
                     return body != null ? body.bytes() : null;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Cannot get response body", e);
                     return null;
                 }
             }
@@ -57,7 +64,7 @@ public interface Response {
                 try {
                     return body != null ? body.string() : null;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Cannot get response body as string", e);
                     return null;
                 }
             }

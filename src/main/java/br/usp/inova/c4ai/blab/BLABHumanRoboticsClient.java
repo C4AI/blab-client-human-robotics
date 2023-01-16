@@ -2,6 +2,8 @@ package br.usp.inova.c4ai.blab;
 
 import br.usp.inova.c4ai.blab.blab.BLABClient;
 import br.usp.inova.c4ai.blab.hr.HumanRoboticsControl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +18,11 @@ import java.util.regex.Pattern;
  * Client for BLAB controller that interacts with Robios robots and avatars.
  */
 public class BLABHumanRoboticsClient {
+
+    /**
+     * Class logger.
+     */
+    private static final Logger logger = LogManager.getLogger();
 
     /**
      * Pattern that matches newline characters.
@@ -93,7 +100,7 @@ public class BLABHumanRoboticsClient {
      */
     private void userMessageReceived(String text) {
         if (!userMessageQueue.offer(text)) {
-            System.err.format("User said “%s”, but the message could not be added to the queue%n", text);
+            logger.error("User said “{}”, but the message could not be added to the queue", text);
         }
     }
 
@@ -105,7 +112,7 @@ public class BLABHumanRoboticsClient {
      */
     private void botMessageReceived(String text) {
         if (!botMessageQueue.offer(text)) {
-            System.err.format("Bot said “%s”, but the message could not be added to the queue%n", text);
+            logger.error("Bot said “{}”, but the message could not be added to the queue", text);
         }
     }
 
@@ -115,18 +122,18 @@ public class BLABHumanRoboticsClient {
      * @return the message sent by the user if it exists, or {@code null} otherwise.
      */
     private String waitForUserMessage() {
-        System.out.format("Waiting at most %dms for a message from the user...%n", userMessageTimeout);
+        logger.info("Waiting at most {}ms for a message from the user...", userMessageTimeout);
         String message;
         try {
             message = userMessageQueue.poll(userMessageTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("Queue retrieval was interrupted", e);
             message = null;
         }
         if (message != null) {
-            System.out.format("User said: %s%n", message);
+            logger.info("User said: “{}”", message);
         } else {
-            System.out.println("Could not listen to user");
+            logger.warn("Could not listen to user");
         }
         return message;
     }
@@ -139,7 +146,7 @@ public class BLABHumanRoboticsClient {
     private String waitForBotMessage() {
         StringBuilder sb = new StringBuilder();
         boolean isFirst = true;
-        System.out.format("Waiting at most %dms for a message from the bots...%n", botMessageTimeout);
+        logger.info("Waiting at most {}ms for a message from the bots...", botMessageTimeout);
         do {
             try {
                 String message = botMessageQueue.poll(isFirst ? botMessageTimeout : 100, TimeUnit.MILLISECONDS);
@@ -149,16 +156,16 @@ public class BLABHumanRoboticsClient {
                     sb.append(message);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Queue retrieval was interrupted.", e);
                 return null;
             }
             isFirst = false;
         } while (!botMessageQueue.isEmpty());
         String message = sb.toString();
         if (message.isBlank())
-            System.out.println("Bot did not reply");
+            logger.warn("Bot did not reply");
         else
-            System.out.format("Bot said: %s%n", NEWLINE.matcher(message).replaceAll(" "));
+            logger.info("Bot said: “{}”", NEWLINE.matcher(message).replaceAll(" "));
         return message;
     }
 
@@ -168,7 +175,7 @@ public class BLABHumanRoboticsClient {
     public void start() {
         blabControl.startConversation("", botNames, " ", conversationId -> {
             if (!robotControl.sayAndListen(greeting))
-                System.err.format("Failed to say greeting or listen: “%s”%n", greeting);
+                logger.error("Failed to say greeting “{}” or to listen", greeting);
             String userMessage;
             while ((userMessage = waitForUserMessage()) != null) {
                 blabControl.sendMessage(userMessage);
@@ -179,7 +186,7 @@ public class BLABHumanRoboticsClient {
                 }
 
                 if (!robotControl.sayAndListen(botMessage))
-                    System.err.format("Failed to say or listen: “%s”%n", botMessage);
+                    logger.error("Failed to say “{}” or to listen", botMessage);
             }
         });
     }
