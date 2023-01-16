@@ -1,5 +1,10 @@
 package br.usp.inova.c4ai.blab.internal.network;
 
+/**
+ * Handles data received from a WebSocket connection.
+ * <p>
+ * The default implementation does nothing.
+ **/
 public abstract class WebSocketListener {
 
     protected void onOpen(Response response) {
