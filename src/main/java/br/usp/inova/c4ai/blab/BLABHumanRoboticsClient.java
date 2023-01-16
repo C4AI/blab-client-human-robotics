@@ -10,9 +10,11 @@ import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
-public class BLABHumanRoboticsClient {
+class BLABHumanRoboticsClient {
 
+    private static final Pattern NEWLINE = Pattern.compile("[\\r\\n]");
     private final HumanRoboticsControl robotControl;
     private final BLABClient blabControl;
 
@@ -29,13 +31,13 @@ public class BLABHumanRoboticsClient {
 
     private final BlockingQueue<String> botMessageQueue;
 
-    public BLABHumanRoboticsClient(Properties config) {
+    BLABHumanRoboticsClient(Properties config) {
 
         botMessageQueue = new LinkedBlockingQueue<>();
         userMessageQueue = new LinkedBlockingQueue<>();
 
         try {
-            this.robotControl = new HumanRoboticsControl(
+            robotControl = new HumanRoboticsControl(
                     config.getProperty("ROBIOS_ROBOT_ADDRESS"),
                     config.getProperty("ROBIOS_ROBOT_ID"),
                     config.getProperty("ROBIOS_API_KEY"),
@@ -88,11 +90,11 @@ public class BLABHumanRoboticsClient {
         System.out.format("Waiting at most %dms for a message from the bots...%n", botMessageTimeout);
         do {
             try {
-                String m = botMessageQueue.poll(isFirst ? botMessageTimeout : 100, TimeUnit.MILLISECONDS);
-                if (m != null) {
+                String message = botMessageQueue.poll(isFirst ? botMessageTimeout : 100, TimeUnit.MILLISECONDS);
+                if (null != message) {
                     if (!isFirst)
-                        sb.append('\n');
-                    sb.append(m);
+                        sb.append(System.lineSeparator());
+                    sb.append(message);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -101,25 +103,28 @@ public class BLABHumanRoboticsClient {
             isFirst = false;
         } while (!botMessageQueue.isEmpty());
         String message = sb.toString();
-        if (!message.isBlank())
-            System.out.format("Bot said: %s%n", message.replaceAll("[\\r\\n]", " "));
-        else
+        if (message.isBlank())
             System.out.println("Bot did not reply");
+        else
+            System.out.format("Bot said: %s%n", NEWLINE.matcher(message).replaceAll(" "));
         return message;
     }
 
     public void start() {
         blabControl.startConversation("", botNames, " ", conversationId -> {
-            robotControl.sayAndListen(greeting);
+            if (!robotControl.sayAndListen(greeting))
+                System.err.format("Failed to say greeting or listen: “%s”%n", greeting);
             String userMessage;
             while ((userMessage = waitForUserMessage()) != null) {
                 blabControl.sendMessage(userMessage);
                 String botMessage;
-                if ((botMessage = waitForBotMessage()) == null) {
+                if (null == (botMessage = waitForBotMessage())) {
                     robotControl.close();
                     break;
                 }
-                robotControl.sayAndListen(botMessage);
+
+                if (!robotControl.sayAndListen(botMessage))
+                    System.err.format("Failed to say or listen: “%s”%n", botMessage);
             }
         });
     }

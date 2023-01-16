@@ -18,18 +18,7 @@ public class Network {
                 .url(url)
                 .post(RequestBody.create(body, MediaType.parse(mimeType)))
                 .build();
-        http.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onResponse(Call call, okhttp3.Response response) {
-                callback.onResponse(Response.fromOkHttp3Response(response));
-            }
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-                callback.onFailure(e);
-            }
-
-        });
+        http.newCall(request).enqueue(new CreateConversationCallback(callback));
     }
 
     public WebSocket newWebSocket(String url, Iterable<HeaderEntry> headers, WebSocketListener listener) {
@@ -37,38 +26,64 @@ public class Network {
         for (HeaderEntry h : headers)
             requestBuilder = requestBuilder.header(h.key(), h.value());
         Request request = requestBuilder.build();
-        return WebSocket.fromOkHttp3WebSocket(http.newWebSocket(request, new okhttp3.WebSocketListener() {
-            @Override
-            public void onClosed(okhttp3.WebSocket webSocket, int code, String reason) {
-                super.onClosed(webSocket, code, reason);
-                listener.onClosed(code, reason);
-            }
-
-            @Override
-            public void onClosing(okhttp3.WebSocket webSocket, int code, String reason) {
-                super.onClosing(webSocket, code, reason);
-                listener.onClosing(code, reason);
-            }
-
-            @Override
-            public void onFailure(okhttp3.WebSocket webSocket, Throwable t, okhttp3.Response response) {
-                super.onFailure(webSocket, t, response);
-                listener.onFailure(t, Response.fromOkHttp3Response(response));
-            }
-
-            @Override
-            public void onMessage(okhttp3.WebSocket webSocket, String text) {
-                super.onMessage(webSocket, text);
-                listener.onMessage(text);
-            }
-
-            @Override
-            public void onOpen(okhttp3.WebSocket webSocket, okhttp3.Response response) {
-                super.onOpen(webSocket, response);
-                listener.onOpen(Response.fromOkHttp3Response(response));
-            }
-        }));
+        return WebSocket.fromOkHttp3WebSocket(http.newWebSocket(request, new CreateWebSocketListener(listener)));
     }
 
 
+    private static final class CreateConversationCallback implements Callback {
+        private final ResponseCallback callback;
+
+        private CreateConversationCallback(ResponseCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        public void onResponse(Call call, okhttp3.Response response) {
+            callback.onResponse(Response.fromOkHttp3Response(response));
+        }
+
+        @Override
+        public void onFailure(Call call, IOException e) {
+            callback.onFailure(e);
+        }
+
+    }
+
+    private static final class CreateWebSocketListener extends okhttp3.WebSocketListener {
+        private final WebSocketListener listener;
+
+        private CreateWebSocketListener(WebSocketListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onClosed(okhttp3.WebSocket webSocket, int code, String reason) {
+            super.onClosed(webSocket, code, reason);
+            listener.onClosed(code, reason);
+        }
+
+        @Override
+        public void onClosing(okhttp3.WebSocket webSocket, int code, String reason) {
+            super.onClosing(webSocket, code, reason);
+            listener.onClosing(code, reason);
+        }
+
+        @Override
+        public void onFailure(okhttp3.WebSocket webSocket, Throwable t, okhttp3.Response response) {
+            super.onFailure(webSocket, t, response);
+            listener.onFailure(t, Response.fromOkHttp3Response(response));
+        }
+
+        @Override
+        public void onMessage(okhttp3.WebSocket webSocket, String text) {
+            super.onMessage(webSocket, text);
+            listener.onMessage(text);
+        }
+
+        @Override
+        public void onOpen(okhttp3.WebSocket webSocket, okhttp3.Response response) {
+            super.onOpen(webSocket, response);
+            listener.onOpen(Response.fromOkHttp3Response(response));
+        }
+    }
 }

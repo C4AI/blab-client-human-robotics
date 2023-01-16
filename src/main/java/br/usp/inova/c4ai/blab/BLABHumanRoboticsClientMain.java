@@ -6,8 +6,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-public class BLABHumanRoboticsClientMain {
-    public static Properties loadConfig(String configFileName) {
+public final class BLABHumanRoboticsClientMain {
+
+    private static Properties loadConfig(String configFileName) {
         Properties properties = new Properties();
         try (InputStreamReader input = new InputStreamReader(new FileInputStream(configFileName), StandardCharsets.UTF_8)) {
             properties.load(input);

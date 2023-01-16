@@ -7,12 +7,12 @@ import io.humanrobotics.api.exception.RobiosException;
 
 import java.io.Closeable;
 import java.util.function.Consumer;
-
-import static java.lang.Math.max;
+import java.util.regex.Pattern;
 
 
 public class HumanRoboticsControl implements Closeable {
 
+    private static final Pattern BLANK = Pattern.compile("\\s");
     private final String robotAddress;
     private final String robotId;
     private final String apiKey;
@@ -39,7 +39,7 @@ public class HumanRoboticsControl implements Closeable {
 
     public boolean sayAndListen(String text) {
         try {
-            long ms = max(minDelay, text.replaceAll("\\s", "").length() * delayPerChar);
+            long ms = Math.max(minDelay, BLANK.matcher(text).replaceAll("").length() * delayPerChar);
             System.out.format("Waiting %dms while sentence is spoken and then listening to user%n", ms);
             robios.say(text).delay(ms).listen();
             return true;

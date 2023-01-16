@@ -1,6 +1,5 @@
 package br.usp.inova.c4ai.blab.internal.network;
 
-import okhttp3.Headers;
 import okhttp3.ResponseBody;
 
 import java.io.IOException;
@@ -11,8 +10,7 @@ public interface Response {
 
     static Response fromOkHttp3Response(okhttp3.Response response) {
         ResponseBody body = response.body();
-        Headers h = response.headers();
-        List<Cookie> cookies = okhttp3.Cookie.parseAll(response.request().url(), response.headers()).stream().map(c -> new Cookie(c.name(), c.value())).toList();
+        List<Cookie> cookies = okhttp3.Cookie.parseAll(response.request().url(), response.headers()).stream().map(cookie -> new Cookie(cookie.name(), cookie.value())).toList();
         return new Response(
         ) {
             @Override
@@ -46,7 +44,7 @@ public interface Response {
             }
 
             @Override
-            public String string() {
+            public String bodyAsString() {
                 try {
                     return body != null ? body.string() : null;
                 } catch (IOException e) {
@@ -67,5 +65,5 @@ public interface Response {
 
     byte[] body();
 
-    String string();
+    String bodyAsString();
 }
