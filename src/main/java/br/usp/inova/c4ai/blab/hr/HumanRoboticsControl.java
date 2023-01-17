@@ -77,6 +77,7 @@ public class HumanRoboticsControl implements Closeable {
         this.apiKey = apiKey;
         try {
             this.robios = createRobios();
+            robios.ext().setAllLogsEnabled(true);
         } catch (RobiosException e) {
             throw new RuntimeException(e);
         }
