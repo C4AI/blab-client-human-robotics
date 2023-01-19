@@ -5,7 +5,7 @@ with [BLAB Controller](https://github.com/C4AI/blab-controller).
 
 ## Instructions
 
-### Pre-requisites
+### Prerequisites
 
 1. Install Java Runtime Environment ≥ 17. If you want to compile from source, install Java Development Kit ≥ 17.
 
