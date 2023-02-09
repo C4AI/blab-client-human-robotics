@@ -100,7 +100,7 @@ public class BLABHumanRoboticsClient {
      */
     private void userMessageReceived(String text) {
         if (!userMessageQueue.offer(text)) {
-            logger.error("User said “{}”, but the message could not be added to the queue", text);
+            logger.error("User said \"{}\", but the message could not be added to the queue", text);
         }
     }
 
@@ -112,7 +112,7 @@ public class BLABHumanRoboticsClient {
      */
     private void botMessageReceived(String text) {
         if (!botMessageQueue.offer(text)) {
-            logger.error("Bot said “{}”, but the message could not be added to the queue", text);
+            logger.error("Bot said \"{}\", but the message could not be added to the queue", text);
         }
     }
 
@@ -131,7 +131,7 @@ public class BLABHumanRoboticsClient {
             message = null;
         }
         if (message != null) {
-            logger.info("User said: “{}”", message);
+            logger.info("User said: \"{}\"", message);
         } else {
             logger.warn("Could not listen to user");
         }
@@ -165,7 +165,7 @@ public class BLABHumanRoboticsClient {
         if (message.isBlank())
             logger.warn("Bot did not reply");
         else
-            logger.info("Bot said: “{}”", NEWLINE.matcher(message).replaceAll(" "));
+            logger.info("Bot said: \"{}\"", NEWLINE.matcher(message).replaceAll(" "));
         return message;
     }
 
@@ -175,7 +175,7 @@ public class BLABHumanRoboticsClient {
     public void start() {
         blabControl.startConversation("", botNames, " ", conversationId -> {
             if (!robotControl.sayAndListen(greeting))
-                logger.error("Failed to say greeting “{}” or to listen", greeting);
+                logger.error("Failed to say greeting \"{}\" or to listen", greeting);
             String userMessage;
             while ((userMessage = waitForUserMessage()) != null) {
                 blabControl.sendMessage(userMessage);
@@ -186,7 +186,7 @@ public class BLABHumanRoboticsClient {
                 }
 
                 if (!robotControl.sayAndListen(botMessage))
-                    logger.error("Failed to say “{}” or to listen", botMessage);
+                    logger.error("Failed to say \"{}\" or to listen", botMessage);
             }
         });
     }

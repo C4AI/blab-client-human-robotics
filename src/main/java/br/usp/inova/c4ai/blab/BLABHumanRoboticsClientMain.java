@@ -34,10 +34,10 @@ public final class BLABHumanRoboticsClientMain {
         try (InputStreamReader input = new InputStreamReader(new FileInputStream(configFileName), StandardCharsets.UTF_8)) {
             properties.load(input);
         } catch (FileNotFoundException e) {
-            logger.fatal("File “{}” does not exist.", configFileName);
+            logger.fatal("File \"{}\" does not exist.", configFileName);
             throw new RuntimeException(e);
         } catch (IOException e) {
-            logger.fatal("Could not read or parse the file “{}”.", configFileName);
+            logger.fatal("Could not read or parse the file \"{}\".", configFileName);
             throw new RuntimeException(e);
         }
         return properties;
@@ -51,7 +51,7 @@ public final class BLABHumanRoboticsClientMain {
     public static void main(String[] args) {
         Configurator.setLevel(LogManager.getRootLogger(), Level.INFO);
         File file = new File(args.length >= 1 ? args[0] : "settings.ini");
-        logger.info("Reading settings from “{}”.", file.getAbsolutePath());
+        logger.info("Reading settings from \"{}\".", file.getAbsolutePath());
         Properties config = loadConfig(file.getAbsolutePath());
         logger.debug(config);
         BLABHumanRoboticsClient client = new BLABHumanRoboticsClient(config);

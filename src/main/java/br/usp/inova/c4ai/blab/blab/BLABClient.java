@@ -122,7 +122,7 @@ public class BLABClient {
         String localId = DASH.matcher(UUID.randomUUID().toString()).replaceAll("");
         String contents = json.toJson(Map.of("type", "T", "local_id", localId, "text", text));
         if (!ws.send(contents))
-            logger.error("Failed to send message: “{}”", text);
+            logger.error("Failed to send message: \"{}\"", text);
     }
 
     /**

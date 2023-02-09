@@ -96,6 +96,12 @@ command, replacing the file names/paths with those of your files:
 java -jar blab-client-human-robotics-1.0.0-jar-with-dependencies.jar settings.ini
 ```
 
+**NOTE:** on some operating systems, it may be necessary to add an extra argument to the previous command line:
+
+```shell
+java --add-opens=java.base/java.lang=ALL-UNNAMED -jar blab-client-human-robotics-1.0.0-jar-with-dependencies.jar settings.ini
+```
+
 ### Compiling from source and running
 
 1. Install [Maven](https://maven.apache.org/) 3.6.3 or newer.
