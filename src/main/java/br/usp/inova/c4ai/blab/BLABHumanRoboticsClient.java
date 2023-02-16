@@ -7,7 +7,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -83,13 +85,18 @@ public class BLABHumanRoboticsClient {
                 config.getProperty("ROBIOS_API_KEY"),
                 Long.parseLong(config.getProperty("DELAY_PER_CHARACTER", "0")),
                 Long.parseLong(config.getProperty("MIN_DELAY", "0")),
-                this::userMessageReceived
+                this::userMessageReceived,
+                stringToBoolean(config.getProperty("ROBIOS_DISABLE_NATIVE_DIALOGS", "false"))
         );
         this.botNames = Arrays.stream(config.getProperty("BLAB_CHAT_BOTS").split(config.getProperty("BLAB_CHAT_BOTS_SEP", ","))).toList();
         this.greeting = config.getProperty("GREETING", "Hello");
         this.userMessageTimeout = Long.parseLong(config.getProperty("USER_MESSAGE_TIMEOUT"));
         this.botMessageTimeout = Long.parseLong(config.getProperty("BOT_MESSAGE_TIMEOUT"));
         this.blabControl = new BLABClient(config.getProperty("BLAB_CHAT_SERVER_URL"), config.getProperty("BLAB_CHAT_WS_SERVER_URL"), this::botMessageReceived);
+    }
+
+    private static boolean stringToBoolean(String s) {
+        return s != null && Set.of("true", "yes", "1").contains(s.strip().toLowerCase(Locale.ROOT));
     }
 
     /**

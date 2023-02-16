@@ -50,6 +50,8 @@ with [BLAB Controller](https://github.com/C4AI/blab-controller).
     # id of the robot or avatar
     ROBIOS_ROBOT_ID=
     
+    # whether native dialogs should be disabled at startup
+    ROBIOS_DISABLE_NATIVE_DIALOGS=true
     
     ########## BLAB ##########
     

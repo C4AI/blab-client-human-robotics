@@ -64,14 +64,15 @@ public class HumanRoboticsControl implements Closeable {
     /**
      * Initializes an instance with the given arguments.
      *
-     * @param robotAddress address of the robot (Human Robotics server or local IP)
-     * @param robotId      ID of the robot
-     * @param apiKey       API key to access Human Robotics services
-     * @param delayPerChar how many milliseconds each non-space character takes in the robot's voice
-     * @param minDelay     minimum number of milliseconds to wait before listening to the user.
-     * @param callback     a function that is called whenever the user says something to the robot
+     * @param robotAddress         address of the robot (Human Robotics server or local IP)
+     * @param robotId              ID of the robot
+     * @param apiKey               API key to access Human Robotics services
+     * @param delayPerChar         how many milliseconds each non-space character takes in the robot's voice
+     * @param minDelay             minimum number of milliseconds to wait before listening to the user.
+     * @param callback             a function that is called whenever the user says something to the robot
+     * @param disableNativeDialogs whether the native dialogs should be disabled at startup
      */
-    public HumanRoboticsControl(String robotAddress, String robotId, String apiKey, long delayPerChar, long minDelay, Consumer<String> callback) {
+    public HumanRoboticsControl(String robotAddress, String robotId, String apiKey, long delayPerChar, long minDelay, Consumer<String> callback, boolean disableNativeDialogs) {
         this.robotAddress = robotAddress;
         this.robotId = robotId;
         this.apiKey = apiKey;
@@ -84,6 +85,13 @@ public class HumanRoboticsControl implements Closeable {
         this.callback = callback;
         this.delayPerChar = delayPerChar;
         this.minDelay = minDelay;
+        if (disableNativeDialogs) {
+            try {
+                robios.useNativeDialogs(false);
+            } catch (Exception e) {
+                logger.warn("Could not disable native dialogs");
+            }
+        }
         robios.addVoiceRecognitionCallback(this::onUserTextReceived);
     }
 
