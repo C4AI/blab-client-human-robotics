@@ -7,9 +7,9 @@ with [BLAB Controller](https://github.com/C4AI/blab-controller).
 
 ### Prerequisites
 
-1. Install Java Runtime Environment ≥ 17. If you want to compile from source, install Java Development Kit ≥ 17.
+1. Install Java ≥ 17.
 
-    - Make sure that `java` points to JRE/JDK 17 or later versions. The version is displayed in the
+    - Make sure that `java` points to Java 17 or later versions. The version is displayed in the
       output of `java -version`. If you have multiple versions installed, set the `JAVA_HOME`
       system variable accordingly.
 
@@ -82,12 +82,15 @@ with [BLAB Controller](https://github.com/C4AI/blab-controller).
     BOT_MESSAGE_TIMEOUT=60000
     
     # how many milliseconds per non-space character should we wait after asking the robot to say something
-    DELAY_PER_CHARACTER=65
+    DELAY_PER_CHARACTER=0
     
     # minimum delay (in milliseconds), in case the value computed using the previous parameter is too small for short sentences
-    MIN_DELAY=500
+    MIN_DELAY=0
     
     ```
+
+   Please note that the delay is no longer necessary in the latest versions of the library (March 2023 onwards),
+   because the method `say()` is now synchronous.
 
 ### Running from a fat JAR
 
@@ -110,7 +113,8 @@ java --add-opens=java.base/java.lang=ALL-UNNAMED -jar blab-client-human-robotics
 
 2. Obtain the [Human Robotics](https://www.humanrobotics.ai/) libraries. Create a `lib/` directory in the
    project root and store those JAR files in subdirectories according
-   to [Maven2 Repository Layout](https://maven.apache.org/repository/layout.html):
+   to [Maven2 Repository Layout](https://maven.apache.org/repository/layout.html).
+   Example (change the version numbers accordingly; they must match the ones defined in *pom.xml*):
     - `lib/io/humanrobotics/api/4.0.0/api-4.0.0.jar`
     - `lib/io/humanrobotics/api/4.0.0/api-4.0.0-javadoc.jar`
     - `lib/io/humanrobotics/communication/2.2.0/communication-2.2.0.jar`
